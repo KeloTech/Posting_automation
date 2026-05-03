@@ -1,0 +1,19 @@
+{
+  "name": "tiktok-posting-automation",
+  "version": "1.0.0",
+  "description": "Automated TikTok posting via Google Sheets + Blotato API",
+  "main": "postVideos.js",
+  "scripts": {
+    "post:eu": "node postVideos.js eu",
+    "post:us": "node postVideos.js us"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5",
+    "googleapis": "^140.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT"
+}

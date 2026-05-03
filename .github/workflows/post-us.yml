@@ -1,0 +1,38 @@
+name: Post US + BR TikToks
+
+on:
+  schedule:
+    # 12:00 EST (UTC-5) = 17:00 UTC
+    # 12:00 EDT (UTC-4, summer) = 16:00 UTC
+    # Using 17:00 UTC (EST / winter). Change to "0 16 * * *" during daylight saving.
+    - cron: "0 17 * * *"
+  workflow_dispatch: # allow manual runs from GitHub UI
+
+jobs:
+  post-us:
+    name: Post US + BR Videos
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run US + BR posting script
+        run: node postVideos.js us
+        env:
+          GOOGLE_CLIENT_EMAIL: ${{ secrets.GOOGLE_CLIENT_EMAIL }}
+          GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY }}
+          SHEET_ID_US: ${{ secrets.SHEET_ID_US }}
+          SHEET_ID_BR: ${{ secrets.SHEET_ID_BR }}
+          BLOTATO_API_KEY: ${{ secrets.BLOTATO_API_KEY }}
+          BLOTATO_ACCOUNT_ID_US: ${{ secrets.BLOTATO_ACCOUNT_ID_US }}
+          BLOTATO_ACCOUNT_ID_BR: ${{ secrets.BLOTATO_ACCOUNT_ID_BR }}
