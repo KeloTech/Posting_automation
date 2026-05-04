@@ -3,7 +3,9 @@
 const axios = require("axios");
 const logger = require("./logger");
 
-const BLOTATO_POSTS_URL = "https://api.blotato.com/v2/posts";
+// Official API host (see https://help.blotato.com/api/publish-post)
+const BLOTATO_POSTS_URL =
+  process.env.BLOTATO_POSTS_URL || "https://backend.blotato.com/v2/posts";
 
 function redactHeadersForLog(headers) {
   const out = { ...headers };
@@ -40,8 +42,8 @@ function assertSuccessfulPostResponse(response) {
 /**
  * Posts a video to TikTok via the Blotato API.
  *
- * POST https://api.blotato.com/v2/posts
- * Body: { post: { accountId, target: "tiktok", content: { caption, mediaUrls } } }
+ * POST https://backend.blotato.com/v2/posts
+ * Body: Blotato "post" wrapper + TikTok content.{ text, mediaUrls, platform } + target.{ targetType, privacyLevel, ... }.
  *
  * Language / market is implied by accountId (per-sheet mapping) and caption text — not sent as a field.
  *
@@ -62,13 +64,27 @@ async function postVideo({ accountId, videoUrl, caption }) {
     throw new Error("Blotato accountId is not set for this account");
   }
 
+  const privacyLevel =
+    process.env.BLOTATO_TIKTOK_PRIVACY_LEVEL || "PUBLIC_TO_EVERYONE";
+  const isAiGenerated = process.env.BLOTATO_TIKTOK_IS_AI_GENERATED === "true";
+
   const payload = {
     post: {
-      accountId,
-      target: "tiktok",
+      accountId: String(accountId),
       content: {
-        caption: caption ?? "",
+        text: caption ?? "",
         mediaUrls: [videoUrl],
+        platform: "tiktok",
+      },
+      target: {
+        targetType: "tiktok",
+        privacyLevel,
+        disabledComments: false,
+        disabledDuet: false,
+        disabledStitch: false,
+        isBrandedContent: false,
+        isYourBrand: false,
+        isAiGenerated,
       },
     },
   };
