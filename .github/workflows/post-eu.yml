@@ -2,10 +2,10 @@ name: Post EU TikToks (FI, DE, ES)
 
 on:
   schedule:
-    # 12:00 Helsinki time (UTC+3 in summer / UTC+2 in winter)
-    # This cron runs at 09:00 UTC which equals 12:00 EEST (summer)
-    # Adjust to "0 10 * * *" during winter (EET = UTC+2)
-    - cron: "0 9 * * *"
+    # Blotato: max 3 unique accounts per rolling 24h — EU and US flows run on different days.
+    # EU: Tuesday and Friday at 12:00 Europe/Helsinki (cron: 0=Sun … 2=Tue, 5=Fri).
+    - cron: "0 12 * * 2,5"
+      timezone: Europe/Helsinki
   workflow_dispatch: # allow manual runs from GitHub UI
 
 jobs:

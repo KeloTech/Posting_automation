@@ -2,10 +2,10 @@ name: Post US + BR TikToks
 
 on:
   schedule:
-    # 12:00 EST (UTC-5) = 17:00 UTC
-    # 12:00 EDT (UTC-4, summer) = 16:00 UTC
-    # Using 17:00 UTC (EST / winter). Change to "0 16 * * *" during daylight saving.
-    - cron: "0 17 * * *"
+    # Blotato: max 3 unique accounts per rolling 24h — staggered from EU (Tue/Fri 12:00 Helsinki).
+    # US+BR: Wednesday and Saturday at 20:00 Europe/Helsinki (3=Wed, 6=Sat).
+    - cron: "0 20 * * 3,6"
+      timezone: Europe/Helsinki
   workflow_dispatch: # allow manual runs from GitHub UI
 
 jobs:
