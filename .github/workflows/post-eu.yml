@@ -1,16 +1,15 @@
-name: Post EU TikToks (FI, DE, ES)
+name: Post FI + DE TikToks
 
 on:
   schedule:
-    # Blotato: max 3 unique accounts per rolling 24h — EU and US flows run on different days.
-    # EU: Tuesday and Friday at 12:00 Europe/Helsinki (cron: 0=Sun … 2=Tue, 5=Fri).
-    - cron: "0 12 * * 2,5"
+    # FI+DE: Wednesday-Saturday at 12:00 Europe/Helsinki (3=Wed, 6=Sat).
+    - cron: "0 12 * * 3-6"
       timezone: Europe/Helsinki
   workflow_dispatch: # allow manual runs from GitHub UI
 
 jobs:
-  post-eu:
-    name: Post EU Videos
+  post-fi-de:
+    name: Post FI + DE Videos
     runs-on: ubuntu-latest
 
     steps:
@@ -26,15 +25,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run EU posting script
-        run: node postVideos.js eu
+      - name: Run FI + DE posting script
+        run: node postVideos.js fi_de
         env:
           GOOGLE_CLIENT_EMAIL: ${{ secrets.GOOGLE_CLIENT_EMAIL }}
           GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY }}
           SHEET_ID_FI: ${{ secrets.SHEET_ID_FI }}
           SHEET_ID_DE: ${{ secrets.SHEET_ID_DE }}
-          SHEET_ID_ES: ${{ secrets.SHEET_ID_ES }}
           BLOTATO_API_KEY: ${{ secrets.BLOTATO_API_KEY }}
           BLOTATO_ACCOUNT_ID_FI: ${{ secrets.BLOTATO_ACCOUNT_ID_FI }}
           BLOTATO_ACCOUNT_ID_DE: ${{ secrets.BLOTATO_ACCOUNT_ID_DE }}
-          BLOTATO_ACCOUNT_ID_ES: ${{ secrets.BLOTATO_ACCOUNT_ID_ES }}

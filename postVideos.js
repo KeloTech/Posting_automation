@@ -43,6 +43,10 @@ const ALL_ACCOUNTS = {
 const WORKFLOWS = {
   eu: ["FI", "DE", "ES"],
   us: ["US", "BR"],
+  es: ["ES"],
+  fi_de: ["FI", "DE"],
+  us_only: ["US"],
+  us_br: ["US", "BR"],
 };
 
 const DELAY_BETWEEN_POSTS_MS = 7_000; // 7 seconds between accounts
@@ -128,9 +132,13 @@ async function main() {
   const mode = (process.argv[2] || "").toLowerCase();
 
   if (!WORKFLOWS[mode]) {
-    console.error(`Usage: node postVideos.js <eu|us>`);
+    console.error(`Usage: node postVideos.js <eu|us|es|fi_de|us_only|us_br>`);
     console.error(`  eu → posts FI, DE, ES`);
     console.error(`  us → posts US, BR`);
+    console.error(`  es → posts ES`);
+    console.error(`  fi_de → posts FI, DE`);
+    console.error(`  us_only → posts US`);
+    console.error(`  us_br → posts US, BR`);
     process.exit(1);
   }
 

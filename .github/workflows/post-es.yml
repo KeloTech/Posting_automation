@@ -1,15 +1,15 @@
-name: Post US TikToks
+name: Post ES TikToks
 
 on:
   schedule:
-    # US only: Tue-Sun at 20:00 Europe/Helsinki (0=Sun, 2=Tue ... 6=Sat).
-    - cron: "0 20 * * 0,2-6"
+    # ES only: Monday at 12:00 Europe/Helsinki (1=Mon).
+    - cron: "0 12 * * 1"
       timezone: Europe/Helsinki
   workflow_dispatch: # allow manual runs from GitHub UI
 
 jobs:
-  post-us:
-    name: Post US Videos
+  post-es:
+    name: Post ES Videos
     runs-on: ubuntu-latest
 
     steps:
@@ -25,11 +25,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run US posting script
-        run: node postVideos.js us_only
+      - name: Run ES posting script
+        run: node postVideos.js es
         env:
           GOOGLE_CLIENT_EMAIL: ${{ secrets.GOOGLE_CLIENT_EMAIL }}
           GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY }}
-          SHEET_ID_US: ${{ secrets.SHEET_ID_US }}
+          SHEET_ID_ES: ${{ secrets.SHEET_ID_ES }}
           BLOTATO_API_KEY: ${{ secrets.BLOTATO_API_KEY }}
-          BLOTATO_ACCOUNT_ID_US: ${{ secrets.BLOTATO_ACCOUNT_ID_US }}
+          BLOTATO_ACCOUNT_ID_ES: ${{ secrets.BLOTATO_ACCOUNT_ID_ES }}
