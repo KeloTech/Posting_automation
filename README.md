@@ -9,13 +9,13 @@ Create a fully automated system that:
 * Posts videos to TikTok via Blotato API
 * Updates the status in Google Sheets
 
-Supports **5 TikTok accounts (languages)**:
+Supports **3 TikTok accounts (languages)**:
 
 * Finnish (FI)
 * German (DE)
-* Spanish (ES)
-* Portuguese - Brazil (BR)
 * English (US)
+
+Spanish (ES) and Portuguese (BR) are disabled (Blotato limits).
 
 ---
 
@@ -56,43 +56,23 @@ Each sheet contains:
 
 ---
 
-## ⏱ Scheduling (IMPORTANT)
+## ⏱ Scheduling
 
-We use **2 workflows**:
+One workflow (`.github/workflows/post.yml`) runs hourly on Tue–Sun. Each run posts **one video per due account**. Weekly post counts are shared; start times differ per account in `schedule.config.json`:
 
-### 🇪🇺 EU Workflow
+| Day | Posts | FI (Helsinki) | DE (Helsinki) | US (Helsinki) |
+|-----|-------|---------------|---------------|---------------|
+| Mon | 0 | — | — | — |
+| Tue | 1 | 12:00 | 13:00 | 20:00 |
+| Wed | 2 | 12:00, 13:00 | 13:00, 14:00 | 20:00, 21:00 |
+| Thu | 4 | 12:00–15:00 | 13:00–16:00 | 20:00–23:00 |
+| Fri | 4 | 12:00–15:00 | 13:00–16:00 | 20:00–23:00 |
+| Sat | 4 | 12:00–15:00 | 13:00–16:00 | 20:00–23:00 |
+| Sun | 1 | 12:00 | 13:00 | 20:00 |
 
-Runs at **12:00 Helsinki time**
+To change US times, edit `accounts.US.startHour` in `schedule.config.json`.
 
-Includes:
-
-* Finnish (FI)
-* German (DE)
-* Spanish (ES)
-
-Cron (UTC approx):
-
-```
-0 9 * * *
-```
-
----
-
-### 🌎 US + Brazil Workflow
-
-Runs at **12:00 US local time**
-
-Includes:
-
-* English (US)
-* Portuguese (BR)
-
-Cron:
-(adjust based on timezone, e.g. EST)
-
-```
-0 17 * * *
-```
+Manual run from GitHub Actions: enable **force_post** to post outside the schedule.
 
 ---
 

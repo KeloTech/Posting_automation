@@ -1,15 +1,22 @@
-name: Post FI + DE TikToks
+name: Post FI + DE + US TikToks
 
 on:
   schedule:
-    # FI+DE: Wednesday-Saturday at 12:00 Europe/Helsinki (3=Wed, 6=Sat).
-    - cron: "0 12 * * 3-6"
+    # FI 12–15, DE 13–16, US 20–23 Helsinki (Mon = 0 posts, skipped by script).
+    # Cron weekday: 0=Sun, 2=Tue … 6=Sat.
+    - cron: "0 12-16,20-23 * * 0,2-6"
       timezone: Europe/Helsinki
-  workflow_dispatch: # allow manual runs from GitHub UI
+  workflow_dispatch:
+    inputs:
+      force_post:
+        description: "Post now even if outside the schedule slot"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
-  post-fi-de:
-    name: Post FI + DE Videos
+  post:
+    name: Post FI + DE + US
     runs-on: ubuntu-latest
 
     steps:
@@ -25,13 +32,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run FI + DE posting script
-        run: node postVideos.js fi_de
+      - name: Run posting script
+        run: node postVideos.js fi_de_us
         env:
+          CI: "true"
+          FORCE_POST: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force_post == 'true' && 'true' || '' }}
           GOOGLE_CLIENT_EMAIL: ${{ secrets.GOOGLE_CLIENT_EMAIL }}
           GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY }}
           SHEET_ID_FI: ${{ secrets.SHEET_ID_FI }}
           SHEET_ID_DE: ${{ secrets.SHEET_ID_DE }}
+          SHEET_ID_US: ${{ secrets.SHEET_ID_US }}
           BLOTATO_API_KEY: ${{ secrets.BLOTATO_API_KEY }}
           BLOTATO_ACCOUNT_ID_FI: ${{ secrets.BLOTATO_ACCOUNT_ID_FI }}
           BLOTATO_ACCOUNT_ID_DE: ${{ secrets.BLOTATO_ACCOUNT_ID_DE }}
+          BLOTATO_ACCOUNT_ID_US: ${{ secrets.BLOTATO_ACCOUNT_ID_US }}

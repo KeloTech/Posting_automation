@@ -7,6 +7,7 @@ if (process.env.CI !== "true") {
 
 const { getFirstPendingRow, markAsPosted } = require("./src/sheets");
 const { postVideo } = require("./src/blotato");
+const { getAccountsToPost, shouldPostAccount } = require("./src/schedule");
 const logger = require("./src/logger");
 
 // ─── Account definitions ──────────────────────────────────────────────────────
@@ -22,16 +23,6 @@ const ALL_ACCOUNTS = {
     sheetId: () => process.env.SHEET_ID_DE,
     blotatoAccountId: () => process.env.BLOTATO_ACCOUNT_ID_DE,
   },
-  ES: {
-    name: "ES (Spanish)",
-    sheetId: () => process.env.SHEET_ID_ES,
-    blotatoAccountId: () => process.env.BLOTATO_ACCOUNT_ID_ES,
-  },
-  BR: {
-    name: "BR (Portuguese)",
-    sheetId: () => process.env.SHEET_ID_BR,
-    blotatoAccountId: () => process.env.BLOTATO_ACCOUNT_ID_BR,
-  },
   US: {
     name: "US (English)",
     sheetId: () => process.env.SHEET_ID_US,
@@ -41,12 +32,7 @@ const ALL_ACCOUNTS = {
 
 // Workflow → ordered account list (sequential execution required)
 const WORKFLOWS = {
-  eu: ["FI", "DE", "ES"],
-  us: ["US", "BR"],
-  es: ["ES"],
-  fi_de: ["FI", "DE"],
-  us_only: ["US"],
-  us_br: ["US", "BR"],
+  fi_de_us: ["FI", "DE", "US"],
 };
 
 const DELAY_BETWEEN_POSTS_MS = 7_000; // 7 seconds between accounts
@@ -132,22 +118,31 @@ async function main() {
   const mode = (process.argv[2] || "").toLowerCase();
 
   if (!WORKFLOWS[mode]) {
-    console.error(`Usage: node postVideos.js <eu|us|es|fi_de|us_only|us_br>`);
-    console.error(`  eu → posts FI, DE, ES`);
-    console.error(`  us → posts US, BR`);
-    console.error(`  es → posts ES`);
-    console.error(`  fi_de → posts FI, DE`);
-    console.error(`  us_only → posts US`);
-    console.error(`  us_br → posts US, BR`);
+    console.error(`Usage: node postVideos.js fi_de_us`);
+    console.error(`  fi_de_us → posts FI, DE, US (1 video per account per run)`);
     process.exit(1);
   }
 
   logger.divider(`TikTok Automation — mode: ${mode.toUpperCase()}`);
-  logger.info(`Accounts to process: ${WORKFLOWS[mode].join(", ")}`);
 
   validateEnv();
 
-  const accountKeys = WORKFLOWS[mode];
+  const allAccountKeys = WORKFLOWS[mode];
+  const dueAccounts = getAccountsToPost(allAccountKeys);
+
+  if (dueAccounts.length === 0) {
+    for (const key of allAccountKeys) {
+      logger.info(`${key}: ${shouldPostAccount(key).reason}`);
+    }
+    logger.info("No accounts due this hour — skipping run");
+    return;
+  }
+
+  for (const { key, schedule } of dueAccounts) {
+    logger.info(`${key}: ${schedule.reason}`);
+  }
+
+  const accountKeys = dueAccounts.map(({ key }) => key);
 
   for (let i = 0; i < accountKeys.length; i++) {
     await processAccount(accountKeys[i]);

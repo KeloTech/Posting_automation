@@ -1,0 +1,17 @@
+{
+  "timezone": "Europe/Helsinki",
+  "postsPerWeekday": {
+    "monday": 0,
+    "tuesday": 1,
+    "wednesday": 2,
+    "thursday": 4,
+    "friday": 4,
+    "saturday": 4,
+    "sunday": 1
+  },
+  "accounts": {
+    "FI": { "startHour": 12 },
+    "DE": { "startHour": 13 },
+    "US": { "startHour": 20 }
+  }
+}
