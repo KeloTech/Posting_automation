@@ -4,7 +4,10 @@
   "description": "Automated TikTok posting via Google Sheets + Blotato API",
   "main": "postVideos.js",
   "scripts": {
-    "post": "node postVideos.js fi_de_us"
+    "post:fi": "node postVideos.js fi",
+    "post:de": "node postVideos.js de",
+    "post:us": "node postVideos.js us",
+    "generate-workflows": "node scripts/generate-workflows.js"
   },
   "dependencies": {
     "axios": "^1.7.2",

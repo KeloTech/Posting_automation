@@ -7,7 +7,6 @@ if (process.env.CI !== "true") {
 
 const { getFirstPendingRow, markAsPosted } = require("./src/sheets");
 const { postVideo } = require("./src/blotato");
-const { getAccountsToPost, shouldPostAccount } = require("./src/schedule");
 const logger = require("./src/logger");
 
 // ─── Account definitions ──────────────────────────────────────────────────────
@@ -30,18 +29,14 @@ const ALL_ACCOUNTS = {
   },
 };
 
-// Workflow → ordered account list (sequential execution required)
+// One account per workflow run (cron defines when; no hour check in script)
 const WORKFLOWS = {
-  fi_de_us: ["FI", "DE", "US"],
+  fi: ["FI"],
+  de: ["DE"],
+  us: ["US"],
 };
 
-const DELAY_BETWEEN_POSTS_MS = 7_000; // 7 seconds between accounts
-
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 function validateEnv() {
   const required = [
@@ -74,7 +69,6 @@ async function processAccount(key) {
     return;
   }
 
-  // 1. Fetch first pending row from Google Sheets
   logger.info("Reading Google Sheet for first pending row…");
   let pending;
   try {
@@ -91,7 +85,6 @@ async function processAccount(key) {
 
   logger.info(`Found pending row ${pending.rowIndex}: "${pending.videoUrl}"`);
 
-  // 2. Post to TikTok via Blotato
   try {
     await postVideo({
       accountId: blotatoAccountId,
@@ -99,12 +92,10 @@ async function processAccount(key) {
       caption: pending.caption,
     });
   } catch (err) {
-    // Do NOT mark as posted if the API call failed
     logger.error("Blotato API call failed — row NOT marked as posted", err);
     return;
   }
 
-  // 3. Mark row as posted only after confirmed success
   try {
     await markAsPosted(sheetId, pending.rowIndex);
   } catch (err) {
@@ -118,44 +109,23 @@ async function main() {
   const mode = (process.argv[2] || "").toLowerCase();
 
   if (!WORKFLOWS[mode]) {
-    console.error(`Usage: node postVideos.js fi_de_us`);
-    console.error(`  fi_de_us → posts FI, DE, US (1 video per account per run)`);
+    console.error(`Usage: node postVideos.js <fi|de|us>`);
+    console.error(`  fi → Finnish account (1 video per run)`);
+    console.error(`  de → German account (1 video per run)`);
+    console.error(`  us → US account (1 video per run)`);
     process.exit(1);
   }
 
   logger.divider(`TikTok Automation — mode: ${mode.toUpperCase()}`);
-
   validateEnv();
 
-  const allAccountKeys = WORKFLOWS[mode];
-  const dueAccounts = getAccountsToPost(allAccountKeys);
-
-  if (dueAccounts.length === 0) {
-    for (const key of allAccountKeys) {
-      logger.info(`${key}: ${shouldPostAccount(key).reason}`);
-    }
-    logger.info("No accounts due this hour — skipping run");
-    return;
-  }
-
-  for (const { key, schedule } of dueAccounts) {
-    logger.info(`${key}: ${schedule.reason}`);
-  }
-
-  const accountKeys = dueAccounts.map(({ key }) => key);
-
-  for (let i = 0; i < accountKeys.length; i++) {
-    await processAccount(accountKeys[i]);
-
-    // Delay between accounts (skip delay after the last one)
-    if (i < accountKeys.length - 1) {
-      logger.info(`Waiting ${DELAY_BETWEEN_POSTS_MS / 1000}s before next account…`);
-      await sleep(DELAY_BETWEEN_POSTS_MS);
-    }
+  const accountKeys = WORKFLOWS[mode];
+  for (const key of accountKeys) {
+    await processAccount(key);
   }
 
   logger.divider("Run complete");
-  logger.success(`All accounts processed for mode: ${mode.toUpperCase()}`);
+  logger.success(`Done for mode: ${mode.toUpperCase()}`);
 }
 
 main().catch((err) => {

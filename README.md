@@ -58,7 +58,7 @@ Each sheet contains:
 
 ## ⏱ Scheduling
 
-One workflow (`.github/workflows/post.yml`) runs hourly on Tue–Sun. Each run posts **one video per due account**. Weekly post counts are shared; start times differ per account in `schedule.config.json`:
+Three separate workflows (`post-fi.yml`, `post-de.yml`, `post-us.yml`). **GitHub cron** decides when to run; the script always posts 1 video (no “must hit exact hour” check — delays are OK).
 
 | Day | Posts | FI (Helsinki) | DE (Helsinki) | US (Helsinki) |
 |-----|-------|---------------|---------------|---------------|
@@ -70,9 +70,13 @@ One workflow (`.github/workflows/post.yml`) runs hourly on Tue–Sun. Each run p
 | Sat | 4 | 12:00–15:00 | 13:00–16:00 | 20:00–23:00 |
 | Sun | 1 | 12:00 | 13:00 | 20:00 |
 
-To change US times, edit `accounts.US.startHour` in `schedule.config.json`.
+**Change weekly schedule:**
 
-Manual run from GitHub Actions: enable **force_post** to post outside the schedule.
+1. Edit `schedule.config.json`
+2. Run `npm run generate-workflows`
+3. Commit the JSON + generated `.github/workflows/post-*.yml` files
+
+Manual test: run any workflow from GitHub Actions → **Run workflow**.
 
 ---
 
