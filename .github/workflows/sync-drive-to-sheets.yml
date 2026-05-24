@@ -1,0 +1,34 @@
+name: Sync Drive Videos to Sheets
+
+# Manual trigger only — run from GitHub Actions → "Run workflow"
+on:
+  workflow_dispatch:
+
+jobs:
+  sync:
+    name: Sync Drive → Sheets
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Drive → Sheets sync
+        run: node syncDriveToSheets.js
+        env:
+          CI: "true"
+          GOOGLE_CLIENT_EMAIL: ${{ secrets.GOOGLE_CLIENT_EMAIL }}
+          GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY }}
+          DRIVE_FOLDER_ID_NEW_VIDEOS: ${{ secrets.DRIVE_FOLDER_ID_NEW_VIDEOS }}
+          SHEET_ID_FI: ${{ secrets.SHEET_ID_FI }}
+          SHEET_ID_DE: ${{ secrets.SHEET_ID_DE }}
+          SHEET_ID_US: ${{ secrets.SHEET_ID_US }}

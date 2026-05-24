@@ -7,7 +7,8 @@
     "post:fi": "node postVideos.js fi",
     "post:de": "node postVideos.js de",
     "post:us": "node postVideos.js us",
-    "generate-workflows": "node scripts/generate-workflows.js"
+    "generate-workflows": "node scripts/generate-workflows.js",
+    "sync-drive": "node syncDriveToSheets.js"
   },
   "dependencies": {
     "axios": "^1.7.2",
