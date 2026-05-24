@@ -73,10 +73,17 @@ function buildVideoUrlRaw(fileId) {
 // ─── Sheet helpers ────────────────────────────────────────────────────────────
 
 /**
- * Reads column G from a sheet.
+ * Reads columns E and G from a sheet in a single API call.
  * Returns:
  *   existingFileIds — Set of file IDs already in column G (dedup check)
- *   nextRow         — 1-based row number of the first empty cell in column G
+ *   nextRow         — 1-based row number of the first truly empty row
+ *
+ * Why column E for nextRow: older rows may have column G empty (they were
+ * added before this sync system existed). The Sheets API only returns rows up
+ * to the last non-empty cell, so basing nextRow on column G alone would
+ * return a row number that is too low and overwrite existing data.
+ * Column E (video_url_raw) is populated on every row, so its length reliably
+ * reflects the real last data row in the sheet.
  *
  * Columns A–D are never read or touched by this script.
  *
@@ -87,20 +94,22 @@ async function readSheetState(sheetId) {
   const auth = buildAuthClient();
   const sheets = google.sheets({ version: "v4", auth });
 
-  const res = await sheets.spreadsheets.values.get({
+  const res = await sheets.spreadsheets.values.batchGet({
     spreadsheetId: sheetId,
-    range: `${SHEET_TAB}!G:G`,
+    ranges: [`${SHEET_TAB}!E:E`, `${SHEET_TAB}!G:G`],
   });
 
-  const gRows = (res.data.values) || [];
+  const eRows = (res.data.valueRanges[0].values) || [];
+  const gRows = (res.data.valueRanges[1].values) || [];
 
-  // Skip header row (index 0), collect non-empty file_ids
+  // Column G: skip header row (index 0), collect non-empty file_ids
   const existingFileIds = new Set(
     gRows.slice(1).map((r) => (r[0] || "").trim()).filter(Boolean)
   );
 
-  // Next empty row is one past the last row with any value in column G
-  const nextRow = gRows.length + 1;
+  // Use the longer of E and G to find the true last data row.
+  // This guards against old rows that have E filled but G empty, or vice versa.
+  const nextRow = Math.max(eRows.length, gRows.length) + 1;
 
   return { existingFileIds, nextRow };
 }
